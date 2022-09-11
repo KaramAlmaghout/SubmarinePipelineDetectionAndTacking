@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <cmath>
 #include <chrono>
+#include <string.h>
 
 
 using namespace std::chrono;
@@ -190,7 +191,7 @@ void ExtractObjects()
     Point ver_p1, ver_p2;
     ver_p1.x = (patches_img.cols)/2;
     ver_p2.x = (patches_img.cols)/2;
-    ver_p1.y = (patches_img.rows-1);
+    ver_p1.y = (int)(patches_img.rows*1.4);
     ver_p2.y = 0;
     linesPnts.push_back(ver_p1);
     linesPnts.push_back(ver_p2);
@@ -229,10 +230,10 @@ void ExtractObjects()
             Point p1(patches_img.cols-1,righty), p2(0,lefty);
             linesPnts.push_back(p1);
             linesPnts.push_back(p2);
-            circle( patches_img, line0, 4, Scalar(127, 127, 127), -1, 8, 0 );
+            circle( patches_img, line0, 3, Scalar(127, 127, 127), -1, 8, 0 );
         }
     }
-    
+    vector<Point> pipeline_pnts;
     if (linesPnts.size() >= 2)
     {
         bool intersection_ = false;
@@ -247,171 +248,34 @@ void ExtractObjects()
                 {
                     j = j+2;
                     circle( patches_img, intersec, 4, Scalar(127, 127, 127), -1, 8, 0 );
-                    line(patches_img, linesPnts0[cnts_sort[n].x],intersec, Scalar(0, 0, 255), 2, LINE_AA);
-                    line(patches_img, linesPnts0[cnts_sort[n+1].x],intersec, Scalar(0, 0, 255), 2, LINE_AA);
+                    cout << "intersection point: "<< intersec << endl;
+                    line(patches_img, linesPnts0[cnts_sort[n].x],intersec, Scalar(255, 255, 255), 3, LINE_AA);
+                    line(patches_img, linesPnts0[cnts_sort[n+1].x],intersec, Scalar(255, 255, 255), 3, LINE_AA);
+                    pipeline_pnts.push_back(intersec);
+                    pipeline_pnts.push_back(linesPnts0[cnts_sort[n+1].x]);
                 }
         }
     }
     
-    Point pixel_(0,0);
-    for (int i = 0; i<patches_img.rows ;i++)
-    {
-        for (int j = 0; j<patches_img.cols; j++)
-        {
-            if (patches_img.at<Vec3b>(i,j).val[0] == 255 && patches_img.at<Vec3b>(i,j).val[1] == 255 && patches_img.at<Vec3b>(i,j).val[2] == 255)
-            {
-                pixel_.x = j;
-                pixel_.y = i;
-                S.push_back(pixel_);
-
-            }
-        }
-    }
-
+    cout << "pipeline points: "<< pipeline_pnts << endl;
     imshow( "pipelineIntersectLines", patches_img );
 }
 
-void PipelineSOM()
-{
-    Mat cfar_img1;
-    patches_img.copyTo(cfar_img1);
-    // decleare a set of points:
-    int w = cfar_img1.cols;
-    int h = cfar_img1.rows;
-    int q_size = 100;
-    vector< Point> q(q_size);
-    int qh = (int)  h/(q_size+1);
-    vector<int> index;
-    // initialization
-    Scalar color = Scalar( 127, 127, 127 );
-    for (int i=0; i<q_size ; i++)
-    {
-        q[i].x = (int) w/2;
-        q[i].y = h - qh*(i+1);
-    }
-    for (size_t n = 0; n<100; n++)
-   {
-    int random = rand() % S.size();
-    int randomP, x = 0;
-    circle( cfar_img1, S[random], 4, color, -1, 8, 0 );
-    double dis = 1000000, min_dis = 10000;
-    int winning_q;
-    for (size_t i = 0; i<q_size; i++)
-    {
-        dis = sqrt(pow((q[i].x-S[random].x),2) + pow((q[i].y-S[random].y),2));
-        if (dis < min_dis)
-        {
-            min_dis = dis;
-            winning_q = i;
-        }
-    }
-    
-    // Excitation Propagation
-    double sigma0 = 5, tau_s = 0.5, gamma0 = 4, tau_g = 0.5;
-    double sigma, gamma, h_p;
-    sigma = sigma0*exp(-1/tau_s);
-    gamma = gamma0*exp(-1/tau_g);
-    double A = 0, B = 2*pow(sigma, 2);
-    int wx = q[winning_q].x;
-    int wy = q[winning_q].y;
-    for (size_t i = 0; i<q_size; i++)
-    {
-        if (find(index.begin(), index.end(), i) != index.end())
-        continue;
-        else
-        {
-            if ( i == winning_q)
-            {
-                q[i].x = S[random].x;
-                q[i].y = S[random].y;
-            }
-            else
-            {
-            A = sqrt(pow(q[i].x -wx,2) + pow(q[i].y - wy,2));
-            h_p =  exp(-A/B);
-            q[i].x = wx + gamma*h_p*(S[random].x - q[i].x);
-            q[i].y = wy + gamma*h_p*(S[random].y - q[i].y);
-            }
-        }
-    }
-    index.push_back(winning_q);
-        
-
-   }
-    vector<Point> q_final, q_final1;
-    q_final.push_back(q[0]);
-    for (size_t i = 1; i<q.size() ; i++)
-    {
-        if (find(q_final.begin(), q_final.end(), q[i]) != q_final.end())
-        {
-            continue;
-        }
-        else
-        {
-            q_final.push_back(q[i]);
-
-        }
-    }
-    sort(q_final.begin(), q_final.end(), sortbysec);
-    double dis = 10000;
-    int ind, ind_p;
-    vector<int> index1;
-    q_final1.push_back(q_final[0]);
-    index1.push_back(0);
-    for (size_t i = 0; i<q_final.size()-1; i++)
-    {
-        for (size_t j = 1; j<q_final.size();j++)
-        {
-            if (find(index1.begin(), index1.end(), j) != index1.end())
-        {
-            continue;
-        }
-        else
-        {
-            if (sqrt(pow((q_final1[i].x - q_final[j].x),2) + pow((q_final1[i].y - q_final[j].y),2))<dis && sqrt(pow((q_final1[i].x - q_final[j].x),2) + pow((q_final1[i].y - q_final[j].y),2)) > 0)
-            {
-                
-                dis = sqrt(pow(q_final1[i].x - q_final[j].x,2) + pow(q_final1[i].y - q_final[j].y,2));
-                ind_p = ind;
-                ind = j;
-            }
-        }
-         
-            
-        }
-        index1.push_back(ind);
-        dis = 10000;
-        q_final1.push_back(q_final[ind]);
-        
-    }
-    
-    color = Scalar( 0, 0, 255);
-    const Point *pts = (const cv::Point*) Mat(q_final1).data;
-    int npts = q_final1.size();
-    color = Scalar( 255, 255, 0 );
-    
-    polylines(src_img, &pts, &npts, 1, false, color);
-        for (int i=0; i<q_size ; i++)
-    {
- 
-        circle( src_img, q[i], 3, color, -1, 8, 0 );
-    }
-    
-    imshow( "piplineSOM_output", src_img );
-    
-}
 
 int main(int argc, char** argv )
 {
     auto start = high_resolution_clock::now();
-    
+    char img_file[] = "imgs/";
     if ( argc < 2 )
     {
         src_img = imread("imgs/sonar3.png", IMREAD_COLOR  );
     }
     else
     {
-        src_img = imread( argv[1], IMREAD_COLOR  );
+        char* img_name =  argv[1];
+        cout << img_name <<endl;
+        
+        src_img = imread(img_name, IMREAD_COLOR);
     }
     
     if ( !src_img.data )
@@ -425,7 +289,7 @@ int main(int argc, char** argv )
     height = src_img.rows;
     width = src_img.cols;
     imshow( "src_img", src_img );
-    
+    cout << "img size: " << height << ", " << width << endl;
     // convert the image color space from 'BGR' to 'Lab' to adjust the lightness histogram of the image (L channel)
     cv::cvtColor(src_img, lab_img, CV_BGR2Lab);
 
