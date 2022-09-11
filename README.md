@@ -17,4 +17,4 @@ g++ <file_name>.cpp -o <file_name>  `pkg-config --cflags --libs opencv`
 
 or
 
-./<file_name> /imgs/<img_name>
+imgs/<img_name>
