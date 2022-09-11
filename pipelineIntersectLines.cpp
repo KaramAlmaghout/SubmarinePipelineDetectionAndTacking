@@ -247,10 +247,10 @@ void ExtractObjects()
                 if (intersection_ && intersec.x >= 0 && intersec.x < patches_img.cols && intersec.y >= 0 )
                 {
                     j = j+2;
-                    circle( patches_img, intersec, 4, Scalar(127, 127, 127), -1, 8, 0 );
+                    circle( src_img, intersec, 4, Scalar(127, 127, 127), -1, 8, 0 );
                     cout << "intersection point: "<< intersec << endl;
-                    line(patches_img, linesPnts0[cnts_sort[n].x],intersec, Scalar(255, 255, 255), 3, LINE_AA);
-                    line(patches_img, linesPnts0[cnts_sort[n+1].x],intersec, Scalar(255, 255, 255), 3, LINE_AA);
+                    line(src_img, linesPnts0[cnts_sort[n].x],intersec, Scalar(0, 200, 0), 3, LINE_AA);
+                    line(src_img, linesPnts0[cnts_sort[n+1].x],intersec, Scalar(0, 200,  0), 3, LINE_AA);
                     pipeline_pnts.push_back(intersec);
                     pipeline_pnts.push_back(linesPnts0[cnts_sort[n+1].x]);
                 }
@@ -258,7 +258,7 @@ void ExtractObjects()
     }
     
     cout << "pipeline points: "<< pipeline_pnts << endl;
-    imshow( "pipelineIntersectLines", patches_img );
+    imshow( "pipelineIntersectLines", src_img );
 }
 
 
