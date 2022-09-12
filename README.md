@@ -6,6 +6,7 @@ Pipeline detection and tracking approaches for autonomous underwater vehicler
 ## pre-requirements
 
 OpenCV library >= 3.2.*
+
 Eigen library
 
 
