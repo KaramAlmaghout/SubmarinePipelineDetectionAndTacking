@@ -26,8 +26,12 @@ imgs/<img_name>
 
 ### Class alphaFilter is a Kalman filter to estimate the pipeline position during the tracking 
 Input: 
+
 *Z: detected position*
+
 *delta_x: difference between position at sample K and sample K-1*
+
 Output:
+
 *X_m: estimated position*
 
