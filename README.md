@@ -1,6 +1,6 @@
 ## SubmarinePipelineDetectionAndTacking
 
-Pipeline detection and tracking approaches for autonomous underwater vehicler
+Pipeline detection and tracking approaches for autonomous underwater vehicle
 
 
 ## pre-requirements
