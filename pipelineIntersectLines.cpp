@@ -1,3 +1,12 @@
+/**
+* pipelineSOM - detect submarine pipeline 
+* based on Self Organizaing Map (SOM)
+*
+* @author: Karam Almaghout
+* 
+*/
+
+
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include <cmath>

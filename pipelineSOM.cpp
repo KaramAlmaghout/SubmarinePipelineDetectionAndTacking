@@ -1,3 +1,11 @@
+/**
+* pipelineIntersectLines - detect submarine pipeline 
+* by generating lines using linear regression of the contours and check the intersection points among these lines  
+*
+* @author: Karam Almaghout
+* 
+*/
+
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include <cmath>
