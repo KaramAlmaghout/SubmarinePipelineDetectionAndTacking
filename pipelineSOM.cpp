@@ -1,6 +1,6 @@
 /**
-* pipelineIntersectLines - detect submarine pipeline 
-* by generating lines using linear regression of the contours and check the intersection points among these lines  
+* pipelineSOM - detect submarine pipeline 
+* based on Self Organizaing Map (SOM)
 *
 * @author: Karam Almaghout
 * 
@@ -29,21 +29,7 @@ vector<Point> S;
 RNG rng(12345);
 
 
-bool intersection(Point2i o1, Point2i p1, Point2i o2, Point2i p2,Point2i &r)
-{
-    Point2i x = o2 - o1;
-    Point2i d1 = p1 - o1;
-    Point2i d2 = p2 - o2;
-
-    float cross = d1.x*d2.y - d1.y*d2.x;
-    if (abs(cross) < /*EPS*/1e-8)
-        return false;
-
-    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
-    r = o1 + d1 * t1;
-    return true;
-}
-
+// This function used to sort the points based on the y coordinates
 bool sortbysec(const Point &a,
               const Point &b)
 {
@@ -62,7 +48,7 @@ void CACFAR()
     Point cut;
     double Pfa = 7000; //false alaram probability 
     int i, j, step = 19; // reference cells (region n+9, including cut and guarding cells)
-    int test_cells = 5, guardig_cells = 3; // guarding_cells is the boundray around the CUT
+    int  guardig_cells = 5; // guarding_cells is the boundray around the CUT
     int shift = (step-1)/2;
     // avoid boundary pixels 
     int n0 = step*step, n = 0, blue = 0, red = 0, green = 0;
@@ -84,14 +70,14 @@ void CACFAR()
                 for (int k=j; k<j+step; k++)
                 {
                     // skip guarding pixels
-                    if ((abs(k-cut.y) < test_cells && (abs(m-cut.x) < test_cells)))
+                    if ((abs(k-cut.y) < guardig_cells && (abs(m-cut.x) < guardig_cells)))
                     {
                         
                         continue;
                     }
 
                     pixelValue = src_img1.at<Vec3b>(m,k);
-                    // skip boundraies
+                    // skip boundraies 
                     if (pixelValue.val[0] >240 && pixelValue.val[1] >240 && pixelValue.val[2] >240)
                     {
                         continue;
@@ -214,7 +200,6 @@ void ExtractObjects()
         {
             
             drawContours( patches_img, contours, i, color, -1, 8, hierarchy, 0, Point() );
-            // cout << contours.size() << endl;
             fitLine(contours[i], line_, DIST_L2, 0, 0.01, 0.01);
             float vx = line_[0];
             float vy = line_[1];
@@ -223,13 +208,11 @@ void ExtractObjects()
             Point line0;
             line0.x = x;
             line0.y = y;
-            // cout << cnts_sort << endl;
             linesPnts0.push_back(line0);
             
             cnts_sort_p.x++;
             cnts_sort_p.y = y;
             cnts_sort.push_back(cnts_sort_p);
-            // cout << cnts_sort << endl;
             cnts_sort_p.y = 0;
             
             int lefty = (int) ((-x*vy/vx) + y);
@@ -256,7 +239,6 @@ void ExtractObjects()
         }
     }
 
-    // imshow( "src_Contours", patches_img );
 }
 
 void PipelineSOM()
@@ -433,7 +415,6 @@ int main(int argc, char** argv )
 
     // convert back to RGB
     cv::cvtColor(lab_img, image_clahe, CV_Lab2BGR);
-    // imshow("lab_img", image_clahe);
 
     CACFAR();
 

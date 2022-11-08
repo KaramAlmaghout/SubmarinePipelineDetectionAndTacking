@@ -1,7 +1,8 @@
 /**
-* pipelineSOM - detect submarine pipeline 
-* based on Self Organizaing Map (SOM)
 *
+* pipelineIntersectLines - detect submarine pipeline 
+* by generating lines using linear regression of the contours and check the intersection points among these lines  
+* 
 * @author: Karam Almaghout
 * 
 */
@@ -64,7 +65,7 @@ void CACFAR()
     Point cut;
     double Pfa = 7000; //false alaram probability 
     int i, j, step = 19; // reference cells (region n+9, including cut and guarding cells)
-    int test_cells = 5, guardig_cells = 3; // guarding_cells is the boundray around the CUT
+    int  guardig_cells = 3; // guarding_cells is the boundray around the CUT
     int shift = (step-1)/2;
     // avoid boundary pixels 
     int n0 = step*step, n = 0, blue = 0, red = 0, green = 0;
@@ -86,7 +87,7 @@ void CACFAR()
                 for (int k=j; k<j+step; k++)
                 {
                     // skip guarding pixels
-                    if ((abs(k-cut.y) < test_cells && (abs(m-cut.x) < test_cells)))
+                    if ((abs(k-cut.y) < guardig_cells && (abs(m-cut.x) < guardig_cells)))
                     {
                         
                         continue;
@@ -216,7 +217,6 @@ void ExtractObjects()
         {
             
             drawContours( patches_img, contours, i, color, -1, 8, hierarchy, 0, Point() );
-            // cout << contours.size() << endl;
             fitLine(contours[i], line_, DIST_L2, 0, 0.01, 0.01);
             float vx = line_[0];
             float vy = line_[1];
@@ -225,13 +225,11 @@ void ExtractObjects()
             Point line0;
             line0.x = x;
             line0.y = y;
-            // cout << cnts_sort << endl;
             linesPnts0.push_back(line0);
             
             cnts_sort_p.x++;
             cnts_sort_p.y = y;
             cnts_sort.push_back(cnts_sort_p);
-            // cout << cnts_sort << endl;
             cnts_sort_p.y = 0;
             
             int lefty = (int) ((-x*vy/vx) + y);
@@ -318,7 +316,6 @@ int main(int argc, char** argv )
 
     // convert back to RGB
     cv::cvtColor(lab_img, image_clahe, CV_Lab2BGR);
-    // imshow("lab_img", image_clahe);
 
     CACFAR();
 
